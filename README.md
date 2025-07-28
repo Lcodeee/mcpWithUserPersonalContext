@@ -8,8 +8,8 @@ A Model Context Protocol (MCP) server with persistent memory using Gemini AI and
 
 1. **Clone and setup:**
    ```bash
-   git clone https://github.com/Lcodeee/userInfoMcp.git
-   cd userInfoMcp
+   git clone https://github.com/Lcodeee/mcpWithUserPersonalContext.git
+   cd mcpWithUserPersonalContext
    cp .env.example .env
    ```
 
