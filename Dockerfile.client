@@ -1,0 +1,30 @@
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python packages for the Gemini client
+RUN pip install --no-cache-dir \
+    google-generativeai \
+    httpx \
+    rich \
+    asyncio-mqtt \
+    python-dotenv \
+    mem0ai \
+    psycopg2-binary \
+    sentence-transformers
+
+# Copy application files
+COPY . .
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+
+# Default command - interactive shell
+CMD ["bash"]

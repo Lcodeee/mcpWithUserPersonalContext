@@ -1,0 +1,79 @@
+services:
+  # Your existing MongoDB (keeping your current setup)
+  mongo_db_mem0:
+    image: mongo:latest
+    container_name: mongo_db_mem0
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+    networks:
+      - userInfoMcp_app_network
+
+  # PostgreSQL with pgvector for Mem0
+  postgres_mem0:
+    image: pgvector/pgvector:pg16
+    container_name: postgres_mem0
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: mem0_db
+      POSTGRES_USER: mem0_user
+      POSTGRES_PASSWORD: mem0_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - userInfoMcp_app_network
+
+  # MCP-Mem0 Server
+  mcp_server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    container_name: mcp_server
+    ports:
+      - "8050:8050"
+    volumes:
+      - ./:/app
+    working_dir: /app
+    command: ["python", "src/http_server.py"]
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+    env_file:
+      - .env
+    networks:
+      - userInfoMcp_app_network
+    depends_on:
+      - postgres_mem0
+      - mongo_db_mem0
+
+  # Python environment for Gemini client
+  gemini_client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    container_name: gemini_client
+    volumes:
+      - ./:/app
+    working_dir: /app
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - MCP_SERVER_URL=http://mcp_server:8050
+    networks:
+      - userInfoMcp_app_network
+    tty: true
+    stdin_open: true
+    depends_on:
+      - mcp_server
+
+volumes:
+  mongo_data:
+  postgres_data:
+
+networks:
+  userInfoMcp_app_network:
+    driver: bridge
