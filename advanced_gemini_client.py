@@ -167,6 +167,8 @@ class AdvancedGeminiChat:
         self.mcp = mcp_client
         self.conversation_history = []
         self.session_start = datetime.now()
+        self.current_session = None
+        self.session_buffer = []
         
     async def get_context_from_memory(self, user_input: str) -> str:
         """Search for relevant context from memory"""
@@ -229,7 +231,10 @@ Answer: {answer[:500]}{'...' if len(answer) > 500 else ''}
 """
                 await self.mcp.save_memory(conversation_entry)
             
-            # Step 5: Update local history
+            # Step 5: Add to session if active
+            self.add_to_session(user_input, answer)
+            
+            # Step 6: Update local history
             self.conversation_history.append({
                 "timestamp": datetime.now(),
                 "user": user_input,
@@ -254,8 +259,120 @@ Answer: {answer[:500]}{'...' if len(answer) > 500 else ''}
             "total_questions": total_questions,
             "questions_with_context": questions_with_context,
             "session_duration": str(session_duration).split('.')[0],
-            "context_usage_rate": f"{questions_with_context/total_questions*100:.1f}%" if total_questions > 0 else "0%"
+            "context_usage_rate": f"{questions_with_context/total_questions*100:.1f}%" if total_questions > 0 else "0%",
+            "current_session": self.current_session,
+            "session_buffer_size": len(self.session_buffer)
         }
+    
+    def start_session(self, session_name: str) -> str:
+        """Start a new conversation session"""
+        if self.current_session:
+            return f"❌ Session '{self.current_session}' is already active. Stop it first with !stop_session"
+        
+        # Create session filename
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
+        safe_name = "".join(c for c in session_name if c.isalnum() or c in ('-', '_')).strip()
+        self.current_session = f"session_{timestamp}_{safe_name}"
+        self.session_buffer = []
+        
+        # Add session header
+        header = f"# Conversation Session: {session_name}\n\n"
+        header += f"**Started:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        header += "---\n\n"
+        self.session_buffer.append(header)
+        
+        return f"✅ Started session: {self.current_session}"
+    
+    def stop_session(self) -> str:
+        """Stop current session and save to file"""
+        if not self.current_session:
+            return "❌ No active session to stop"
+        
+        try:
+            # Ensure conversations directory exists
+            os.makedirs("/app/conversations", exist_ok=True)
+            
+            # Add session footer
+            footer = f"\n\n---\n\n**Ended:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+            footer += f"**Total exchanges:** {len([b for b in self.session_buffer if b.startswith('**Q:**')])}\n"
+            self.session_buffer.append(footer)
+            
+            # Write to file
+            filepath = f"/app/conversations/{self.current_session}.md"
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(''.join(self.session_buffer))
+            
+            session_name = self.current_session
+            self.current_session = None
+            self.session_buffer = []
+            
+            return f"✅ Session saved: {session_name}.md"
+            
+        except Exception as e:
+            return f"❌ Error saving session: {e}"
+    
+    def export_session(self) -> str:
+        """Export current session without stopping"""
+        if not self.current_session:
+            return "❌ No active session to export"
+        
+        try:
+            # Ensure conversations directory exists
+            os.makedirs("/app/conversations", exist_ok=True)
+            
+            # Create export with current timestamp
+            export_buffer = self.session_buffer.copy()
+            export_buffer.append(f"\n\n---\n\n**Exported:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            export_buffer.append(f"**Status:** Session still active\n")
+            
+            # Write to file
+            filepath = f"/app/conversations/{self.current_session}_export.md"
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(''.join(export_buffer))
+            
+            return f"✅ Session exported: {self.current_session}_export.md"
+            
+        except Exception as e:
+            return f"❌ Error exporting session: {e}"
+    
+    def list_sessions(self) -> str:
+        """List saved conversation files"""
+        try:
+            conversations_dir = "/app/conversations"
+            if not os.path.exists(conversations_dir):
+                return "📁 No conversations directory found"
+            
+            files = [f for f in os.listdir(conversations_dir) if f.endswith('.md')]
+            if not files:
+                return "📁 No saved conversations found"
+            
+            files.sort(reverse=True)  # Most recent first
+            result = f"📁 Found {len(files)} saved conversations:\n\n"
+            
+            for i, file in enumerate(files[:10], 1):  # Show last 10
+                # Get file size and modification time
+                filepath = os.path.join(conversations_dir, file)
+                size = os.path.getsize(filepath)
+                mtime = datetime.fromtimestamp(os.path.getmtime(filepath))
+                
+                result += f"{i}. **{file}**\n"
+                result += f"   Size: {size:,} bytes | Modified: {mtime.strftime('%Y-%m-%d %H:%M')}\n\n"
+            
+            if len(files) > 10:
+                result += f"... and {len(files) - 10} more files\n"
+            
+            return result
+            
+        except Exception as e:
+            return f"❌ Error listing sessions: {e}"
+    
+    def add_to_session(self, user_input: str, assistant_response: str):
+        """Add conversation to current session buffer"""
+        if self.current_session:
+            timestamp = datetime.now().strftime("%H:%M:%S")
+            entry = f"**Q:** [{timestamp}] {user_input}\n\n"
+            entry += f"**A:** {assistant_response}\n\n---\n\n"
+            self.session_buffer.append(entry)
 
 async def display_welcome():
     """Display welcome screen"""
@@ -283,6 +400,10 @@ async def display_commands():
     table.add_row("!memory <query>", "Direct search in memory")
     table.add_row("!history", "Show conversation history")
     table.add_row("!stats", "Session statistics")
+    table.add_row("!start_session <name>", "Start recording conversation to file")
+    table.add_row("!stop_session", "Stop recording and save to file")
+    table.add_row("!export_session", "Export current session without stopping")
+    table.add_row("!list_sessions", "Show saved conversation files")
     table.add_row("!clear", "Clear screen")
     table.add_row("!help", "Show this help")
     table.add_row("exit / quit", "Exit the program")
@@ -380,6 +501,30 @@ async def main():
                         console.print(f"[green]A:[/green] {entry['assistant'][:150]}{'...' if len(entry['assistant']) > 150 else ''}")
                 else:
                     console.print("\n📜 [yellow]No conversation history yet[/yellow]")
+                continue
+                
+            elif user_input.startswith('!start_session '):
+                session_name = user_input[15:].strip()
+                if session_name:
+                    result = gemini.start_session(session_name)
+                    console.print(f"\n{result}")
+                else:
+                    console.print("\n❌ [red]Please provide a session name[/red]")
+                continue
+                
+            elif user_input.lower() in ['!stop_session']:
+                result = gemini.stop_session()
+                console.print(f"\n{result}")
+                continue
+                
+            elif user_input.lower() in ['!export_session']:
+                result = gemini.export_session()
+                console.print(f"\n{result}")
+                continue
+                
+            elif user_input.lower() in ['!list_sessions']:
+                result = gemini.list_sessions()
+                console.print(f"\n{result}")
                 continue
             
             # Regular question to Gemini

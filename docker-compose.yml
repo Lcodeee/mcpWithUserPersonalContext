@@ -59,6 +59,7 @@ services:
     container_name: gemini_client
     volumes:
       - ./:/app
+      - ./conversations:/app/conversations
     working_dir: /app
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}

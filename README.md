@@ -42,7 +42,20 @@ or test interactively
    - Answer questions using your personal context
    - Save new information automatically
 
-6. **Stop the system properly:**
+6. **Save conversations to files:**
+   In the interactive chat, use these commands:
+   - `!start_session <name>` - Start recording conversation to markdown file
+   - `!stop_session` - Stop recording and save to `/conversations/` folder
+   - `!export_session` - Export current session without stopping
+   - `!list_sessions` - Show all saved conversation files
+   
+   **Features:**
+   - Conversations saved as readable markdown files
+   - Files stored in local `conversations/` folder (not committed to git)
+   - Timestamped entries with full conversation history
+   - Survives container restarts
+
+7. **Stop the system properly:**
    ```bash
    docker-compose down
    ```
