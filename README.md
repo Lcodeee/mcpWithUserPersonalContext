@@ -27,6 +27,14 @@ A Model Context Protocol (MCP) server with persistent memory using Gemini AI and
    ```bash
    docker-compose exec gemini_client python test_memory.py
    ```
+or test interactively
+   ```bash
+   docker-compose exec gemini_client python interactive-demo-test.py
+   ```
+
+   
+
+
 
 ## What it does
 
