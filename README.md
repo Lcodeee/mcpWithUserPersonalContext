@@ -32,6 +32,16 @@ or test interactively
    docker-compose exec gemini_client python interactive-demo-test.py
    ```
 
+5. **Chat with Gemini using MCP memory:**
+   ```bash
+   docker-compose exec gemini_client python advanced_gemini_client.py
+   ```
+   This starts an interactive chat where Gemini can:
+   - Remember your conversations
+   - Search through your stored memories
+   - Answer questions using your personal context
+   - Save new information automatically
+
    
 
 
