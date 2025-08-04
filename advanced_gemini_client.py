@@ -14,8 +14,7 @@ from typing import List, Dict, Any, Optional
 
 try:
     import httpx
-    import os
-import google.generativeai as genai
+    import google.generativeai as genai
     from rich.console import Console
     from rich.panel import Panel
     from rich.prompt import Prompt

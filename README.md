@@ -42,7 +42,18 @@ or test interactively
    - Answer questions using your personal context
    - Save new information automatically
 
-   
+6. **Stop the system properly:**
+   ```bash
+   docker-compose down
+   ```
+   This command:
+   - Stops all running containers gracefully
+   - Removes containers but keeps your data
+   - Preserves all memories in the database
+   - Ensures clean restart next time
+
+   **Note:** Your memories are permanently stored and will be available when you restart!
+
 
 
 
