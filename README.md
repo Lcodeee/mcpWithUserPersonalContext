@@ -16,6 +16,7 @@ A Model Context Protocol (MCP) server with persistent memory using Gemini AI and
 2. **Add your Gemini API key to `.env`:**
    ```env
    LLM_API_KEY=your_gemini_api_key_here
+   GEMINI_API_KEY=your_gemini_api_key_here
    ```
 
 3. **Start the system:**
