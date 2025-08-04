@@ -47,28 +47,28 @@ mkdir test_files
 ```bash
 # קובץ על מתכונים
 cat > test_files/recipes.txt << 'EOF'
-מתכון לפסטה ברוטב עגבניות:
-1. הרתיחו מים במחבת גדולה
-2. הוסיפו פסטה ובשלו 8-10 דקות
-3. הכינו רוטב עגבניות עם בזיליקום
-4. ערבבו הכל והגישו חם
+Tomato Sauce Pasta Recipe:
+1. Boil water in a large pan
+2. Add pasta and cook for 8–10 minutes
+3. Prepare tomato sauce with basil
+4. Mix everything and serve hot
 EOF
 
 # קובץ על טכנולוגיה
 cat > test_files/tech_notes.txt << 'EOF'
-הערות על פיתוח תוכנה:
-- Python הוא שפה מצוינת למתחילים
-- Docker מפשט פריסת אפליקציות
-- מסדי נתונים וקטוריים מאפשרים חיפוש סמנטי
-- AI משנה את עולם הטכנולוגיה
+Software Development Notes:
+- Python is an excellent language for beginners
+- Docker simplifies application deployment
+- Vector databases enable semantic search
+- AI is transforming the tech world
 EOF
 
 # קובץ על נסיעות
 cat > test_files/travel_diary.txt << 'EOF'
-יומן נסיעות:
-ביקרתי בפריז בקיץ האחרון. המגדל אייפל היה מרשים במיוחד בשקיעה.
-המוזיאונים היו מלאי אמנות יפהפיה, במיוחד הלובר.
-האוכל הצרפתי היה טעים - קרואסונים בבוקר וגבינות בערב.
+Travel Diary:
+I visited Paris last summer. The Eiffel Tower was especially impressive at sunset.
+The museums were full of beautiful art, especially the Louvre.
+The French food was delicious – croissants in the morning and cheeses in the evening.
 EOF
 ```
 
@@ -80,34 +80,34 @@ EOF
 פתחו את הקובץ `src/http_server.py` והוסיפו את הפונקציה הבאה **לפני** השורה `if __name__ == "__main__"`:
 
 ```python
-@app.post("/load_file")
-async def load_file_endpoint(request: dict):
-    """Load text from file and save to memory"""
+@app.post("/load_file_simple")
+async def load_file_simple(request: dict):
+    """Load text from file and save to memory - simple working version"""
     try:
         file_path = request.get("file_path")
         if not file_path:
             raise HTTPException(status_code=400, detail="file_path is required")
         
-        # בדיקה שהקובץ קיים
+        # Read the file directly
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail=f"File not found: {file_path}")
         
-        # קריאת הקובץ
+        if file_path.endswith('.json'):
+            try:
+                data = json_lib.loads(content)
+                content = json_lib.dumps(data, indent=2, ensure_ascii=False)
+            except:
+                pass 
+            
         with open(file_path, 'r', encoding='utf-8') as file:
             content = file.read()
         
         if not content.strip():
             raise HTTPException(status_code=400, detail="File is empty")
         
-        # שמירה בזיכרון עם מידע על המקור
-        memory_text = f"[File: {file_path}]\n{content}"
-        
-        # שימוש בלקוח הזיכרון הקיים
-        global mem0_client
-        if mem0_client is None:
-            mem0_client = get_mem0_client()
-        
-        result = mem0_client.add(memory_text, user_id="default_user")
+        # Use the exact same approach as save_memory - just pass content directly
+        messages = [{"role": "user", "content": content}]
+        result = mem0_client.add(messages, user_id=DEFAULT_USER_ID)
         
         return {
             "success": True,
@@ -118,7 +118,7 @@ async def load_file_endpoint(request: dict):
         }
         
     except Exception as e:
-        logger.error(f"Error loading file: {e}")
+        print(f"Error loading file: {e}")
         raise HTTPException(status_code=500, detail=f"Error loading file: {e}")
 ```
 
