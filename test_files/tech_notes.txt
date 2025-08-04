@@ -1,0 +1,5 @@
+Software Development Notes:
+- Python is an excellent language for beginners
+- Docker simplifies application deployment
+- Vector databases enable semantic search
+- AI is transforming the tech world

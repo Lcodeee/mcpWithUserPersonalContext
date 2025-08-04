@@ -122,6 +122,88 @@ async def search_memories(request: SearchMemoryRequest):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error searching memories: {str(e)}")
+    
+
+@app.post("/load_file")
+async def load_file_endpoint(request: dict):
+    """Load text from file and save to memory"""
+    try:
+        file_path = request.get("file_path")
+        if not file_path:
+            raise HTTPException(status_code=400, detail="file_path is required")
+        
+        # בדיקה שהקובץ קיים
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail=f"File not found: {file_path}")
+        
+        # קריאת הקובץ
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        
+        if not content.strip():
+            raise HTTPException(status_code=400, detail="File is empty")
+        
+        # שמירה בזיכרון עם מידע על המקור
+        memory_text = f"[File: {file_path}]\n{content}"
+        
+        # שימוש בלקוח הזיכרון הקיים
+        global mem0_client
+        if mem0_client is None:
+            mem0_client = get_mem0_client()
+        
+        messages = [{"role": "user", "content": memory_text}]
+        print(f"🔍 DEBUG: About to save memory with user_id={DEFAULT_USER_ID}")
+        print(f"🔍 DEBUG: Memory text length: {len(memory_text)}")
+        print(f"🔍 DEBUG: Messages format: {messages}")
+        result = mem0_client.add(messages, user_id=DEFAULT_USER_ID)
+        print(f"🔍 DEBUG: Result from mem0_client.add: {result}")
+        
+        return {
+            "success": True,
+            "message": f"Successfully loaded file: {file_path}",
+            "file_path": file_path,
+            "content_length": len(content),
+            "result": result
+        }
+        
+    except Exception as e:
+        print(f"Error loading file: {e}")
+        raise HTTPException(status_code=500, detail=f"Error loading file: {e}")
+
+@app.post("/load_file_simple")
+async def load_file_simple(request: dict):
+    """Load text from file and save to memory - simple working version"""
+    try:
+        file_path = request.get("file_path")
+        if not file_path:
+            raise HTTPException(status_code=400, detail="file_path is required")
+        
+        # Read the file directly
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail=f"File not found: {file_path}")
+            
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        
+        if not content.strip():
+            raise HTTPException(status_code=400, detail="File is empty")
+        
+        # Use the exact same approach as save_memory - just pass content directly
+        messages = [{"role": "user", "content": content}]
+        result = mem0_client.add(messages, user_id=DEFAULT_USER_ID)
+        
+        return {
+            "success": True,
+            "message": f"Successfully loaded file: {file_path}",
+            "file_path": file_path,
+            "content_length": len(content),
+            "result": result
+        }
+        
+    except Exception as e:
+        print(f"Error loading file: {e}")
+        raise HTTPException(status_code=500, detail=f"Error loading file: {e}")
+
 
 if __name__ == "__main__":
     uvicorn.run(
