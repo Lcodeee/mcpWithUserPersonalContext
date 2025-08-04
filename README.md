@@ -56,45 +56,45 @@ or test interactively
    - Timestamped entries with full conversation history
    - Survives container restarts
 
-   - **Example running:**:
+   **Example running:**:
    Lees-MacBook-Pro:myserver Lee$ 
    docker-compose exec gemini_client python advanced_gemini_client.py
-╭────────────────────────────────────────────────────────╮
-│                                                        │
-│                                                        │
-│  🤖 Advanced Gemini + MCP-Mem0 Client                  │
-│                                                        │
-│  Smart AI assistant with long-term memory              │
-│  Powered by Google Gemini 2.0 Flash + MCP Memory       │
-│  Server                                                │
-│                                                        │
-│  ✨ Features:                                          │
-│  • Smart conversation with Gemini                      │
-│  • Automatic memory of all conversations               │
-│  • Search in previous memories                         │
-│  • Relevant context for every question                 │
-│                                                        │
-│                                                        │
-╰────────────────────────────────────────────────────────╯
+    ╭────────────────────────────────────────────────────────╮
+    │                                                        │
+    │                                                        │
+    │  🤖 Advanced Gemini + MCP-Mem0 Client                  │
+    │                                                        │
+    │  Smart AI assistant with long-term memory              │
+    │  Powered by Google Gemini 2.0 Flash + MCP Memory       │
+    │  Server                                                │
+    │                                                        │
+    │  ✨ Features:                                          │
+    │  • Smart conversation with Gemini                      │
+    │  • Automatic memory of all conversations               │
+    │  • Search in previous memories                         │
+    │  • Relevant context for every question                 │
+    │                                                        │
+    │                                                        │
+    ╰────────────────────────────────────────────────────────╯
 
-🔄 Checking MCP server connection...
-❌ Connection failed: All connection attempts failed
-⚠️ MCP server not accessible, using simulation mode
-🤖 Initializing Gemini...
-✅ Ready to chat!
+    🔄 Checking MCP server connection...
+    ❌ Connection failed: All connection attempts failed
+    ⚠️ MCP server not accessible, using simulation mode
+    🤖 Initializing Gemini...
+    ✅ Ready to chat!
 
-💡 Type !help for commands or just start asking questions!
-🚪 Type 'exit' to quit
-
-
-🗣️ Your question: !start_session travel_to_paris
+    💡 Type !help for commands or just start asking questions!
+    🚪 Type 'exit' to quit
 
 
-✅ Started session: 
-session_2025-08-04_22-38_travel_to_paris
+    🗣️ Your question: !start_session travel_to_paris
 
-🗣️ Your question: 
-   plan a trip for me to paris, according to my hobbies and food prefrences
+
+    ✅ Started session: 
+    session_2025-08-04_22-38_travel_to_paris
+
+    🗣️ Your question: 
+      plan a trip for me to paris, according to my hobbies and food prefrences
   
 
 7. **Stop the system properly:**
